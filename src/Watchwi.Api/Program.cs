@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using Watchwi.Infrastructure.Persistence;
+
 // =============================================================
 // BUILD WEB APPLICATION
 // =============================================================
@@ -6,6 +9,17 @@ var builder = WebApplication.CreateBuilder(args);
 // =============================================================
 // CONFIG: DATABASE
 // =============================================================
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+}
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+});
 
 // =============================================================
 // DEPENDENCY INJECTION: REPOSITORIES
@@ -61,7 +75,7 @@ var app = builder.Build();
 // =============================================================
 // DB CONNECTIVITY CHECK AT STARTUP
 // =============================================================
-/*
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -82,7 +96,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine($"An error occured: {ex.Message}");
     }
 }
-*/
+
 
 // =============================================================
 // MIDDLEWARE PIPELINE
