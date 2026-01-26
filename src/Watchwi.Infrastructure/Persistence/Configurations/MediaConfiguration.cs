@@ -31,13 +31,17 @@ public class MediaConfiguration : IEntityTypeConfiguration<Media>
             .WithMany()
             .HasForeignKey(m => m.PosterId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.Property(m => m.MediaUrl)
+            .IsRequired()
+            .HasMaxLength(500);
+        
+        builder.Property(m => m.IsFeatured)
+            .IsRequired()
+            .HasDefaultValue(false);
 
         builder.HasMany(m => m.Categories)
             .WithMany(c => c.Medias)
             .UsingEntity(j => j.ToTable("MediaCategories"));
-
-        builder.HasMany(m => m.FavoritedBy)
-            .WithMany(u => u.FavoriteMedias)
-            .UsingEntity(j => j.ToTable("UserFavoriteMedias")); 
     }
 }

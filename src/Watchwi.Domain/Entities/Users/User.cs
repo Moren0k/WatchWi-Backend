@@ -142,11 +142,19 @@ public class User : BaseEntity
         Plan = plan;
     }
     
-    public void AddToFavorites(Media media)
+    public void MarkAsFavorite(Media media)
     {
         if (!FavoriteMedias.Contains(media))
         {
             FavoriteMedias.Add(media);
+        }
+    }
+    
+    public void RemoveAsFavorite(Media media)
+    {
+        if (!FavoriteMedias.Contains(media))
+        {
+            FavoriteMedias.Remove(media);
         }
     }
 }

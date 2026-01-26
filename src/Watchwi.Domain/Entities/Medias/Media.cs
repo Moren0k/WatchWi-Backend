@@ -10,24 +10,29 @@ public class Media : BaseEntity
     public string Title { get; private set; } = null!;
     public string Description { get; private set; } = null!;
     public MediaType MediaType { get; private set; } = MediaType.None;
-    
+
     public Guid? PosterId { get; private set; }
     public Image? Poster { get; private set; }
-    
+
+    public string MediaUrl { get; private set; } = null!;
+
     public ICollection<User> FavoritedBy { get; private set; } = new List<User>();
     public ICollection<Category> Categories { get; private set; } = new List<Category>();
+
+    public bool IsFeatured { get; private set; } = false;
 
     protected Media()
     {
         // Requerido por EF Core
     }
 
-    public Media(string title, string description, MediaType mediaType, Image poster)
+    public Media(string title, string description, MediaType mediaType, Image poster, string mediaUrl)
     {
         SetTitle(title);
         SetDescription(description);
         SetMediaType(mediaType);
         SetPoster(poster);
+        SetMediaUrl(mediaUrl);
     }
 
     private void SetTitle(string title)
@@ -70,6 +75,26 @@ public class Media : BaseEntity
         PosterId = image.Id;
     }
     
+    private void SetMediaUrl(string mediaUrl)
+    {
+        if (string.IsNullOrWhiteSpace(mediaUrl))
+            throw new ArgumentException("Url cannot be empty.", nameof(mediaUrl));
+
+        var sanitizedUrl = mediaUrl.Trim();
+
+        if (!Uri.TryCreate(sanitizedUrl, UriKind.Absolute, out var uri))
+            throw new ArgumentException(
+                $"The string '{sanitizedUrl}' is not a valid absolute URL.",
+                nameof(mediaUrl));
+
+        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+            throw new ArgumentException(
+                "Only HTTP or HTTPS URLs are allowed.",
+                nameof(mediaUrl));
+
+        MediaUrl = sanitizedUrl;
+    }
+
     public void AddCategory(Category? category)
     {
         if (category == null) return;
@@ -77,5 +102,16 @@ public class Media : BaseEntity
         {
             Categories.Add(category);
         }
+    }
+
+    public void MarkAsFeatured()
+    {
+        if (IsFeatured) return;
+        IsFeatured = true;
+    }
+
+    public void UnmarkAsFeatured()
+    {
+        IsFeatured = false;
     }
 }

@@ -44,7 +44,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(u => u.FavoriteMedias)
-            .WithMany()
+            .WithMany(m => m.FavoritedBy)
             .UsingEntity(j => j.ToTable("UserFavoriteMedias"));
     }
 }
