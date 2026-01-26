@@ -25,7 +25,7 @@ Boceto del Diagrama de Clases del Dominio:
 
 Represneta el modelo de dominio y sus relaciones, Final.
 
-![Domain Class Diagram Database](docs/diagrams/watchwi-class-diagram-database.png)
+![Domain Class Diagram Database](/docs/diagrams/watchwi-class-diagram-database.png)
 
 ---
 
