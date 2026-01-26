@@ -25,7 +25,8 @@ public class MediaConfiguration : IEntityTypeConfiguration<Media>
         builder.Property(m => m.MediaType)
             .HasConversion<string>()
             .HasMaxLength(30)
-            .HasDefaultValue(MediaType.None);
+            .HasDefaultValue(MediaType.None)
+            .HasSentinel(MediaType.None);
 
         builder.HasOne(m => m.Poster)
             .WithMany()

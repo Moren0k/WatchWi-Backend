@@ -23,6 +23,10 @@ Boceto del Diagrama de Clases del Dominio:
 
 ![Domain Class Diagram Sketch](/docs/diagrams/watchwi-class-diagram-sketch.png)
 
+Represneta el modelo de dominio y sus relaciones, Final.
+
+![Domain Class Diagram Database](docs/diagrams/watchwi-class-diagram-database.png)
+
 ---
 
 ## Use Case Diagram
