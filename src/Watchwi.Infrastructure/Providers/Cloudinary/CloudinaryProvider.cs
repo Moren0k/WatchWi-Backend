@@ -2,7 +2,6 @@ using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Options;
 using Watchwi.Application.IProviders.Cloudinary;
-using Watchwi.Application.Models.Cloudinary;
 
 namespace Watchwi.Infrastructure.Providers.Cloudinary;
 

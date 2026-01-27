@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Watchwi.Application.IProviders.Cloudinary;
 using Watchwi.Application.IProviders.Security;
+using Watchwi.Application.Services.AuthService;
 using Watchwi.Domain.Common.IRepositories;
 using Watchwi.Domain.Entities.Categories;
 using Watchwi.Domain.Entities.Images;
@@ -56,6 +57,7 @@ builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 // =============================================================
 // DEPENDENCY INJECTION: SERVICES
 // =============================================================
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // =============================================================
 // CONTROLLERS

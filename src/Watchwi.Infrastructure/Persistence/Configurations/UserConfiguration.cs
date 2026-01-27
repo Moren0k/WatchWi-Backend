@@ -33,12 +33,16 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(20)
             .HasDefaultValue(UserRole.User)
             .HasSentinel(UserRole.None);
+        
+        builder.Property(u => u.Status)
+            .IsRequired()
+            .HasDefaultValue(false);
 
         builder.Property(u => u.Plan)
             .HasConversion<string>()
             .HasMaxLength(20)
             .HasDefaultValue(UserPlan.None)
-            .HasSentinel(UserRole.None);
+            .HasSentinel(UserPlan.None);
 
         builder.HasOne(u => u.ProfileImage)
             .WithOne()

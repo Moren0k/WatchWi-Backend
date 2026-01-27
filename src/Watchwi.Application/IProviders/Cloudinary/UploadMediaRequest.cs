@@ -1,4 +1,4 @@
-namespace Watchwi.Application.Models.Cloudinary;
+namespace Watchwi.Application.IProviders.Cloudinary;
 
 public class UploadMediaRequest
 {

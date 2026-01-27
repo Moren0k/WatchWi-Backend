@@ -20,14 +20,14 @@ public class JwtProvider : IJwtProvider
     public string Generate(UserDto user)
     {
         var secretKey = Environment.GetEnvironmentVariable("Jwt__Key") ??
-                        throw new InvalidOperationException("Jwt_Key not configured");
+                        throw new InvalidOperationException("Jwt__Key not configured");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id),
-            new Claim(ClaimTypes.Role, user.Role),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Role, user.Role.ToString()),
         };
 
         var token = new JwtSecurityToken(
