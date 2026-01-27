@@ -1,8 +1,8 @@
+using Watchwi.Domain.Common.IRepositories;
+
 namespace Watchwi.Domain.Entities.Images;
 
-public interface IImageRepository
+public interface IImageRepository : IBaseRepository<Image>
 {
-    // WRITE
-    
-    // READ
+    Task<Image?> GetByPublicIdAsync(string publicId);
 }

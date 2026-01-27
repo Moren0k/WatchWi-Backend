@@ -1,8 +1,10 @@
+using Watchwi.Domain.Common.IRepositories;
+
 namespace Watchwi.Domain.Entities.Medias;
 
-public interface IMediaRepository
+public interface IMediaRepository : IBaseRepository<Media>
 {
-    // WRITE
-    
-    // READ
+    Task<Media?> GetByTitleAsync(string title);
+    Task<IReadOnlyList<Media>> GetByTypeAsync(MediaType mediaType);
+    Task<Media?> GetFeaturedAsync();
 }

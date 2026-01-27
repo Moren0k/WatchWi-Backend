@@ -1,8 +1,8 @@
+using Watchwi.Domain.Common.IRepositories;
+
 namespace Watchwi.Domain.Entities.Categories;
 
-public interface ICategoryRepository
+public interface ICategoryRepository : IBaseRepository<Category>
 {
-    // WRITE
-    
-    // READ
+    Task<Category?> GetByNameAsync(string name);
 }

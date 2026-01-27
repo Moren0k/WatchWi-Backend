@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Watchwi.Domain.Common.IRepositories;
 using Watchwi.Infrastructure.Persistence;
+using Watchwi.Infrastructure.Repositories.Common;
 
 // =============================================================
 // BUILD WEB APPLICATION
@@ -24,6 +26,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // =============================================================
 // DEPENDENCY INJECTION: REPOSITORIES
 // =============================================================
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 
 // =============================================================
 // DEPENDENCY INJECTION: PROVIDERS
