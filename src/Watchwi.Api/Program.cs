@@ -1,6 +1,18 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Watchwi.Application.IProviders.Cloudinary;
+using Watchwi.Application.IProviders.Security;
 using Watchwi.Domain.Common.IRepositories;
+using Watchwi.Domain.Entities.Categories;
+using Watchwi.Domain.Entities.Images;
+using Watchwi.Domain.Entities.Medias;
+using Watchwi.Domain.Entities.Users;
 using Watchwi.Infrastructure.Persistence;
+using Watchwi.Infrastructure.Providers.Cloudinary;
+using Watchwi.Infrastructure.Providers.Security;
+using Watchwi.Infrastructure.Repositories;
 using Watchwi.Infrastructure.Repositories.Common;
 
 // =============================================================
@@ -29,9 +41,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IImageRepository, ImageRepository>();
+builder.Services.AddScoped<IMediaRepository, MediaRepository>();
+
 // =============================================================
 // DEPENDENCY INJECTION: PROVIDERS
 // =============================================================
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<ICloudinaryProvider, CloudinaryProvider>();
+builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 
 // =============================================================
 // DEPENDENCY INJECTION: SERVICES
@@ -51,10 +71,47 @@ builder.Services.AddSwaggerGen();
 // =============================================================
 // JWT/SECURITY
 // =============================================================
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var secretKey = Environment.GetEnvironmentVariable("Jwt__Key") ??
+                        throw new InvalidOperationException("JWT_KEY not configured");
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 
 // =============================================================
 // CLOUDINARY
 // =============================================================
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection(CloudinarySettings.SectionName));
+
+builder.Services.PostConfigure<CloudinarySettings>(settings =>
+{
+    if (string.IsNullOrWhiteSpace(settings.CloudName))
+        throw new InvalidOperationException("Cloudinary CloudName not configured");
+
+    if (string.IsNullOrWhiteSpace(settings.ApiKey))
+        throw new InvalidOperationException("Cloudinary ApiKey not configured");
+
+    if (string.IsNullOrWhiteSpace(settings.ApiSecret))
+        throw new InvalidOperationException("Cloudinary ApiSecret not configured");
+});
 
 // =============================================================
 // CORS
