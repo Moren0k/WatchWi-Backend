@@ -11,6 +11,8 @@ public class CloudinaryProvider : ICloudinaryProvider
 
     public CloudinaryProvider(IOptions<CloudinarySettings> options)
     {
+        ArgumentNullException.ThrowIfNull(options);
+
         var settings = options.Value;
 
         var account = new Account(settings.CloudName, settings.ApiKey, settings.ApiSecret);
@@ -20,6 +22,11 @@ public class CloudinaryProvider : ICloudinaryProvider
 
     public async Task<UploadMediaResponse> UploadAsync(UploadMediaRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
+        
+        if (request.FileStream == Stream.Null)
+            throw new ArgumentException("FileStream is required");
+        
         var uploadParams = new ImageUploadParams
         {
             File = new FileDescription(request.FileName, request.FileStream),
@@ -28,11 +35,11 @@ public class CloudinaryProvider : ICloudinaryProvider
             UniqueFilename = true,
             Overwrite = false
         };
-        
+
         var result = await _cloudinary.UploadAsync(uploadParams);
-        
+
         if (result.Error != null)
-            throw new InvalidOperationException(result.Error.Message);
+            throw new InvalidOperationException($"Cloudinary upload failed: {result.Error.Message}");
 
         return new UploadMediaResponse
         {
@@ -44,6 +51,13 @@ public class CloudinaryProvider : ICloudinaryProvider
     public async Task DeleteAsync(string publicId)
     {
         var deleteParams = new DeletionParams(publicId);
-        await _cloudinary.DestroyAsync(deleteParams);
+        var result = await _cloudinary.DestroyAsync(deleteParams);
+
+        if (result.Result != "ok")
+        {
+            throw new InvalidOperationException(
+                $"Cloudinary delete failed for publicId '{publicId}'"
+            );
+        }
     }
 }

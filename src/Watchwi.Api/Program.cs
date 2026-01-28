@@ -2,9 +2,11 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Watchwi.Application.IProviders.Cloudinary;
 using Watchwi.Application.IProviders.Security;
 using Watchwi.Application.Services.AuthService;
+using Watchwi.Application.Services.MediaService;
 using Watchwi.Domain.Common.IRepositories;
 using Watchwi.Domain.Entities.Categories;
 using Watchwi.Domain.Entities.Images;
@@ -58,6 +60,8 @@ builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 // DEPENDENCY INJECTION: SERVICES
 // =============================================================
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IMediaService, MediaService>();
+
 
 // =============================================================
 // CONTROLLERS
@@ -68,18 +72,68 @@ builder.Services.AddControllers();
 // SWAGGER/OPENAPI
 // =============================================================
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "WatchWi API",
+        Version = "v1",
+        Description = "API for WatchWi platform"
+    });
+
+    // 🔐 JWT Bearer definition
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter your JWT token like this: Bearer {your token}"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // =============================================================
-// JWT/SECURITY
+// JWT / SECURITY
 // =============================================================
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
+builder.Services.AddOptions<JwtSettings>().Bind(builder.Configuration.GetSection(JwtSettings.SectionName))
+    .Validate(s =>
+            !string.IsNullOrWhiteSpace(s.Key) &&
+            !string.IsNullOrWhiteSpace(s.Issuer) &&
+            !string.IsNullOrWhiteSpace(s.Audience) &&
+            s.AccessTokenMinutes > 0,
+        "Invalid JwtSettings")
+    .ValidateOnStart();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        var secretKey = Environment.GetEnvironmentVariable("Jwt__Key") ??
-                        throw new InvalidOperationException("JWT_KEY not configured");
+        var jwtSection = builder.Configuration.GetSection(JwtSettings.SectionName);
+
+        var issuer = jwtSection.GetValue<string>("Issuer")
+                     ?? throw new InvalidOperationException("Jwt:Issuer not configured");
+
+        var audience = jwtSection.GetValue<string>("Audience")
+                       ?? throw new InvalidOperationException("Jwt:Audience not configured");
+
+        var key = jwtSection.GetValue<string>("Key")
+                  ?? throw new InvalidOperationException("Jwt:Key not configured");
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -88,32 +142,29 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
 
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+            ValidIssuer = issuer,
+            ValidAudience = audience,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(key)
+            ),
+
             ClockSkew = TimeSpan.Zero
         };
     });
-
 builder.Services.AddAuthorization();
-
 
 // =============================================================
 // CLOUDINARY
 // =============================================================
-builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection(CloudinarySettings.SectionName));
-
-builder.Services.PostConfigure<CloudinarySettings>(settings =>
-{
-    if (string.IsNullOrWhiteSpace(settings.CloudName))
-        throw new InvalidOperationException("Cloudinary CloudName not configured");
-
-    if (string.IsNullOrWhiteSpace(settings.ApiKey))
-        throw new InvalidOperationException("Cloudinary ApiKey not configured");
-
-    if (string.IsNullOrWhiteSpace(settings.ApiSecret))
-        throw new InvalidOperationException("Cloudinary ApiSecret not configured");
-});
+builder.Services
+    .AddOptions<CloudinarySettings>()
+    .Bind(builder.Configuration.GetSection(CloudinarySettings.SectionName))
+    .Validate(s =>
+            !string.IsNullOrWhiteSpace(s.CloudName) &&
+            !string.IsNullOrWhiteSpace(s.ApiKey) &&
+            !string.IsNullOrWhiteSpace(s.ApiSecret),
+        "Invalid CloudinarySettings")
+    .ValidateOnStart();
 
 // =============================================================
 // CORS

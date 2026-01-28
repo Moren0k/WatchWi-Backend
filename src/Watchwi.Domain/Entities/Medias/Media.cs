@@ -19,7 +19,7 @@ public class Media : BaseEntity
     public ICollection<User> FavoritedBy { get; private set; } = new List<User>();
     public ICollection<Category> Categories { get; private set; } = new List<Category>();
 
-    public bool IsFeatured { get; private set; } = false;
+    public bool IsFeatured { get; private set; }
 
     protected Media()
     {
