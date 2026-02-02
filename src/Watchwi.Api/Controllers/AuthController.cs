@@ -35,4 +35,13 @@ public class AuthController : ControllerBase
 
         return Ok(result);
     }
+
+    /// <summary>
+    /// Logout is client-side only. Client must discard the JWT.
+    /// </summary>
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        return NoContent();
+    }
 }

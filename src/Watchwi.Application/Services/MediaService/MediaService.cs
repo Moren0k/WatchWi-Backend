@@ -99,12 +99,20 @@ public sealed class MediaService : IMediaService
         );
     }
 
-    public async Task MarkAsFeaturedAsync(Guid id)
+    public async Task MarkAsFeaturedAsync(Guid mediaId)
     {
-        var media = await _mediaRepository.GetByIdAsync(id)
-                    ?? throw new InvalidOperationException("Media not found.");
+        var mediaToFeature = await _mediaRepository.GetByIdAsync(mediaId)
+                             ?? throw new InvalidOperationException("Media not found.");
 
-        media.MarkAsFeatured();
+        var currentlyFeatured = await _mediaRepository.GetFeaturedAsync();
+
+        if (currentlyFeatured != null && currentlyFeatured.Id != mediaToFeature.Id)
+        {
+            currentlyFeatured.UnmarkAsFeatured();
+        }
+
+        mediaToFeature.MarkAsFeatured();
+
         await _unitOfWork.SaveChangesAsync();
     }
 

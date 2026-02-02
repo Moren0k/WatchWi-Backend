@@ -31,6 +31,11 @@ public class User : BaseEntity
         SetPasswordHash(passwordHash);
     }
 
+    public void UpdateProfile(string username)
+    {
+        SetUsername(username);
+    }
+
     private void SetUsername(string username)
     {
         if (username == null)

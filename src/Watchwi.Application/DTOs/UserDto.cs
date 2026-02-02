@@ -6,5 +6,6 @@ public record UserDto(
     string Email,
     string Role,
     bool Status,
-    string Plan
+    string Plan,
+    string? ProfileImageUrl
 );

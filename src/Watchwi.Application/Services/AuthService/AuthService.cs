@@ -45,7 +45,8 @@ public class AuthService : IAuthService
             user.Email,
             user.Role.ToString(),
             user.Status,
-            user.Plan.ToString()
+            user.Plan.ToString(),
+            user.ProfileImage?.Url
         );
         
         var userToken = _jwtProvider.Generate(userDto);
@@ -82,7 +83,8 @@ public class AuthService : IAuthService
             newUser.Email,
             newUser.Role.ToString(),
             newUser.Status,
-            newUser.Plan.ToString()
+            newUser.Plan.ToString(),
+            newUser.ProfileImage?.Url
         );
 
         var userToken = _jwtProvider.Generate(userDto);

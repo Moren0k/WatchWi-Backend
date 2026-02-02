@@ -7,6 +7,7 @@ using Watchwi.Application.IProviders.Cloudinary;
 using Watchwi.Application.IProviders.Security;
 using Watchwi.Application.Services.AuthService;
 using Watchwi.Application.Services.MediaService;
+using Watchwi.Application.Services.UserService;
 using Watchwi.Domain.Common.IRepositories;
 using Watchwi.Domain.Entities.Categories;
 using Watchwi.Domain.Entities.Images;
@@ -61,6 +62,7 @@ builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 // =============================================================
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMediaService, MediaService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 
 // =============================================================
