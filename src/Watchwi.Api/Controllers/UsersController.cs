@@ -28,6 +28,16 @@ public class UsersController : ControllerBase
             
         return id;
     }
+    
+    [HttpGet("profile")]
+    public async Task<IActionResult> GetProfile()
+    {
+        var result = await _userService.GetProfileAsync(GetUserId());
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
+
+        return Ok(result.Value);
+    }
 
     [HttpPut("profile")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserRequestDto request)

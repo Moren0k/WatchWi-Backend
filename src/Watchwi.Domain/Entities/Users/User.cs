@@ -149,7 +149,7 @@ public class User : BaseEntity
     
     public void MarkAsFavorite(Media media)
     {
-        if (!FavoriteMedias.Contains(media))
+        if (FavoriteMedias.All(m => m.Id != media.Id))
         {
             FavoriteMedias.Add(media);
         }
@@ -157,9 +157,10 @@ public class User : BaseEntity
     
     public void RemoveAsFavorite(Media media)
     {
-        if (!FavoriteMedias.Contains(media))
+        var existing = FavoriteMedias.FirstOrDefault(m => m.Id == media.Id);
+        if (existing != null)
         {
-            FavoriteMedias.Remove(media);
+            FavoriteMedias.Remove(existing);
         }
     }
 }

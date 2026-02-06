@@ -29,10 +29,27 @@ public class UserService : IUserService
         _cloudinaryProvider = cloudinaryProvider;
         _unitOfWork = unitOfWork;
     }
+    
+    public async Task<Result<UserDto>> GetProfileAsync(Guid userId)
+    {
+        var user = await _userRepository.GetByIdWithProfileImageAsync(userId);
+        if (user == null)
+            return Result<UserDto>.Failure("User not found");
+        
+        return Result<UserDto>.Success(new UserDto(
+            user.Id,
+            user.Username,
+            user.Email,
+            user.Role.ToString(),
+            user.Status,
+            user.Plan.ToString(),
+            user.ProfileImage?.Url
+        ));
+    }
 
     public async Task<Result<UserDto>> UpdateProfileAsync(Guid userId, UpdateUserRequestDto request)
     {
-        var user = await _userRepository.GetByIdAsync(userId);
+        var user = await _userRepository.GetByIdWithProfileImageAsync(userId);
         if (user == null)
             return Result<UserDto>.Failure("User not found");
 
@@ -118,14 +135,12 @@ public class UserService : IUserService
 
     public async Task<Result> AddFavoriteAsync(Guid userId, Guid mediaId)
     {
-        var user = await _userRepository.GetByIdWithFavoritesAsync(userId);
+        var user = await _userRepository.GetByIdWithFavoritesLiteAsync(userId);
         if (user == null) return Result.Failure("User not found");
 
-        var media = await _mediaRepository.GetByIdAsync(mediaId); // Assuming GetByIdAsync exists in base
+        var media = await _mediaRepository.GetByIdAsync(mediaId);
         if (media == null) return Result.Failure("Media not found");
 
-        // Idempotency check handled by Domain?
-        // Domain has `if (!FavoriteMedias.Contains(media))`
         user.MarkAsFavorite(media);
         
         await _unitOfWork.SaveChangesAsync();
@@ -134,14 +149,23 @@ public class UserService : IUserService
 
     public async Task<Result> RemoveFavoriteAsync(Guid userId, Guid mediaId)
     {
-         var user = await _userRepository.GetByIdWithFavoritesAsync(userId);
+         var user = await _userRepository.GetByIdWithFavoritesLiteAsync(userId);
          if (user == null) return Result.Failure("User not found");
          
+         // Using a stub media object for RemoveAsFavorite since we only need the ID 
+         // and the domain method handles finding it in the collection.
+         // Alternatively, we could fetch the media, but it's more efficient to just 
+         // pass what's needed or let the domain handling it as we implemented.
+         // Given the domain implementation: existing = FavoriteMedias.FirstOrDefault(m => m.Id == media.Id)
+         // we can just pass a media with the Id.
          var media = user.FavoriteMedias.FirstOrDefault(m => m.Id == mediaId);
-         if (media == null) return Result.Failure("Media is not in favorites");
-
-         user.RemoveAsFavorite(media);
-         await _unitOfWork.SaveChangesAsync();
+         
+         if (media != null)
+         {
+             user.RemoveAsFavorite(media);
+             await _unitOfWork.SaveChangesAsync();
+         }
+         
          return Result.Success();
     }
 
@@ -153,7 +177,8 @@ public class UserService : IUserService
          var dtos = user.FavoriteMedias.Select(m => new FavoriteMediaDto(
              m.Id,
              m.Title,
-             m.Poster?.Url
+             m.Poster?.Url,
+             m.Description
          )).ToList();
 
          return Result<IReadOnlyList<FavoriteMediaDto>>.Success(dtos);

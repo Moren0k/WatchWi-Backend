@@ -29,6 +29,13 @@ public class UserRepository : BaseRepository<User>, IUserRepository
             .FirstOrDefaultAsync(u => u.Id == id);
     }
 
+    public async Task<User?> GetByIdWithFavoritesLiteAsync(Guid id)
+    {
+        return await DbSet
+            .Include(u => u.FavoriteMedias)
+            .FirstOrDefaultAsync(u => u.Id == id);
+    }
+
     public async Task<User?> GetByIdWithProfileImageAsync(Guid id)
     {
         return await DbSet

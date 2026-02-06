@@ -9,5 +9,6 @@ public record UploadProfileImageRequestDto(FileUploadRequest File);
 public record FavoriteMediaDto(
     Guid Id,
     string Title,
-    string? PosterUrl
+    string? PosterUrl,
+    string Description
 );
